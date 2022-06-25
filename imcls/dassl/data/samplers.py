@@ -20,8 +20,11 @@ class RandomDomainSampler(Sampler):
 
         # Keep track of image indices for each domain
         self.domain_dict = defaultdict(list)
+        '''
+        在这里把标签信息加到字典里。
+        '''
         for i, item in enumerate(data_source):    #对读入的数据地址按照领域进行划分，生成字典
-            self.domain_dict[item.domain].append(i)
+            self.domain_dict[item.domain].append([i, item.label])     #给一个领域的
         self.domains = list(self.domain_dict.keys())
 
         # Make sure each domain has equal number of images
@@ -44,7 +47,7 @@ class RandomDomainSampler(Sampler):
             selected_domains = random.sample(self.domains, self.n_domain)  #随机选择几个域，这里默认是2个
 
             for domain in selected_domains:
-                idxs = domain_dict[domain]
+                idxs, labels = domain_dict[domain]
                 selected_idxs = random.sample(idxs, self.n_img_per_domain)
                 final_idxs.extend(selected_idxs)
 
@@ -75,8 +78,11 @@ class SeqDomainSampler(Sampler):
 
         # Keep track of image indices for each domain
         self.domain_dict = defaultdict(list)
+        '''
+        在领域字典里，还要加上标签信息
+        '''
         for i, item in enumerate(data_source):
-            self.domain_dict[item.domain].append(i)
+            self.domain_dict[item.domain].append(i, item.label)
         self.domains = list(self.domain_dict.keys())
         self.domains.sort()
 
@@ -97,12 +103,12 @@ class SeqDomainSampler(Sampler):
 
         while not stop_sampling:
             for domain in self.domains:
-                idxs = domain_dict[domain]
+                idxs, label = domain_dict[domain]    #添加label
                 selected_idxs = random.sample(idxs, self.n_img_per_domain)
                 final_idxs.extend(selected_idxs)
 
                 for idx in selected_idxs:
-                    domain_dict[domain].remove(idx)
+                    domain_dict[domain].remove([idx, label])  #添加label
 
                 remaining = len(domain_dict[domain])
                 if remaining < self.n_img_per_domain:
