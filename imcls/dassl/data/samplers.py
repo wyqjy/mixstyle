@@ -20,9 +20,6 @@ class RandomDomainSampler(Sampler):
 
         # Keep track of image indices for each domain
         self.domain_dict = defaultdict(list)
-        '''
-        
-        '''
         for i, item in enumerate(data_source):    #对读入的数据地址按照领域进行划分，生成字典
             self.domain_dict[item.domain].append(i)
         self.domains = list(self.domain_dict.keys())
