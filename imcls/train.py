@@ -153,7 +153,7 @@ if __name__ == '__main__':
         '--transforms', type=str, nargs='+', help='data augmentation methods'
     )
     parser.add_argument(
-        '--config-file', type=str, default='configs/trainers/mixstyle/pacs_crossdomain.yaml', help='path to config file'   #设置了default
+        '--config-file', type=str, default='configs/trainers/mixstyle/pacs_lisa.yaml', help='path to config file'   #设置了default
     )
     parser.add_argument(
         '--dataset-config-file',
