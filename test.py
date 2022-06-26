@@ -11,3 +11,5 @@ import torch
 # print('-'*50)
 # print(perm)
 print(torch.cuda.is_available())
+
+k=list()
