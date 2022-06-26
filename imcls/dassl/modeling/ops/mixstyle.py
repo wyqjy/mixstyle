@@ -115,10 +115,10 @@ class MixStyle(nn.Module):
 
         elif self.mix == "crossdomain":
             # split into two halves and swap the order
-            perm = torch.arange(B - 1, -1, -1)  # inverse index
-            perm_b, perm_a = perm.chunk(2)
-            perm_b = perm_b[torch.randperm(perm_b.shape[0])]
-            perm_a = perm_a[torch.randperm(perm_a.shape[0])]
+            perm = torch.arange(0, B, 1)  # inverse index
+            perm_a, perm_b = perm.chunk(2)
+            # perm_b = perm_b[torch.randperm(perm_b.shape[0])]
+            # perm_a = perm_a[torch.randperm(perm_a.shape[0])]
             perm = torch.cat([perm_b, perm_a], 0)
 
         else:

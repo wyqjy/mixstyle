@@ -234,9 +234,12 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
                     first_select = selected_idxs
                 else:
                     for x1 in first_select:      #第二组，后64  选择和第一组对应同标签但不同域的。其中域已经确定
-                        x2 = random.sample(idx_domain_label[domain][idx_label_dict[x1][0]], 1)
-                        selected_idxs.append(x2[0])
-                        idx_domain_label[domain][idx_label_dict[x1][0]].remove(x2[0])
+                        if len(idx_domain_label[domain][idx_label_dict[x1][0]]):
+                            x2 = random.sample(idx_domain_label[domain][idx_label_dict[x1][0]], 1)
+                            selected_idxs.append(x2[0])
+                            idx_domain_label[domain][idx_label_dict[x1][0]].remove(x2[0])
+                        else:    # 对应类别领域的样本没有了，使用原样本
+                            selected_idxs.append(x1)
                     first_select = []
 
                 final_idxs.extend(selected_idxs)
@@ -244,7 +247,8 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
 
                 for idx in selected_idxs:  # 为了保证已经选择的数据，不会被二次选择，将他们移除
                     # print(idx)
-                    domain_dict[domain].remove(idx)
+                    if idx in domain_dict[domain]:
+                        domain_dict[domain].remove(idx)
                     idx_label = idx_label_dict[idx][0]
                     if flag:
                         idx_domain_label[domain][idx_label].remove(idx)
