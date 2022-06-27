@@ -34,4 +34,3 @@ from collections import defaultdict
 # print(Wb)
 print(torch.arange(-1,127,1))
 print(torch.arange(127,-1,-1))
-
