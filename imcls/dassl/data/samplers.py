@@ -233,9 +233,9 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
                 domains[label].append(d)
 
         count = defaultdict(lambda: defaultdict())  # 计数
-        for i in domains:
+        for i in self.domains:
             for j in labels:
-                count[i][j]=len(idx_domain_label[i][j])
+                count[i][j] = len(idx_domain_label[i][j])
 
         final_idxs = []
         stop_sampling = False
