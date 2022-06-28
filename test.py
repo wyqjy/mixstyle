@@ -34,11 +34,18 @@ from collections import defaultdict
 # print(Wb)
 # print(torch.arange(-1,127,1))
 # print(torch.arange(127,-1,-1))
+#
+# domains = defaultdict(list)
+# for i in range(5):
+#     for j in range(i):
+#         domains[i].append(j)
+# print(domains)
+# for i in range(5):
+#     print(len(domains[i]))
 
-domains = defaultdict(list)
-for i in range(5):
-    for j in range(i):
-        domains[i].append(j)
-print(domains)
-for i in range(5):
-    print(len(domains[i]))
+k=3
+j=k*3
+print(k,' ',j)
+p=k
+p=6
+print(p, ' ',k)

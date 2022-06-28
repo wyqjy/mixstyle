@@ -209,7 +209,7 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
             self.idx_domain_label[item.domain][item.label].append(i)
             self.label_dict[item.label].append(i)
         self.labels = list(self.label_dict.keys())
-        self.domains  = list(self.domain_dict.keys())
+        self.domains = list(self.domain_dict.keys())
 
         # # Make sure each domain has equal number of images
         # if n_domain is None or n_domain <= 0:
@@ -226,8 +226,9 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
         domain_dict = copy.deepcopy(self.domain_dict)
         idx_label_dict = copy.deepcopy(self.idx_label_dict)
         idx_domain_label = copy.deepcopy(self.idx_domain_label)
+        idx_domain = copy.deepcopy(self.idx_domain)
         domains = defaultdict(list)
-        labels = self.labels
+        labels = copy.deepcopy(self.labels)
         for label in labels:         # 7*3的
             for d in self.domains:
                 domains[label].append(d)
@@ -240,59 +241,112 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
         final_idxs = []
         stop_sampling = False
 
+        repeat_use = defaultdict(lambda: defaultdict(list))   #用于第二段   当第二部分没有可用数据时，使用之前分配过的数据，这一部分不会用太多
+        batch_order = 0                     # 计算到第几次batch了
 
+        count_repeat = 0   #计算用到的重复数据
         while not stop_sampling:
             runing_id = 0
+            selected_idxs = []   #一个batch里的选定idx
             for id_seg in range(self.n_ins):    #遍历段号（总共16段，前8段随机，后8段有域和标签的约束）
-                selected_idxs = []
-                seg_selected_idxs = []
 
+                seg_selected_idxs = []     #一段里的选定idx
+                max_first_rechoose = 10    #前8小段，遇到不足时，重新选择标签最大次数，用来防止1个标签使得
+                select_domain = 0
+                select_label = 0
 
-                if id_seg <self.n_ins//2:
+                if id_seg <self.n_ins//2:    #前8段
+                    if not len(labels):
+                        stop_sampling = True
+                        runing_id =id_seg
+                        break
+
                     select_label = random.sample(labels, 1)[0]
                     if not len(domains[select_label]):
                         choose_count = 0
-                        while choose_count < 10:
+                        while choose_count < max_first_rechoose:
                             select_label = random.sample(labels, 1)[0]
+                            # print(select_label)
                             if len(domains[select_label]):
                                 break
                             choose_count += 1
-                        if choose_count == 10:
+
+                        if choose_count == max_first_rechoose:
                             stop_sampling = True
                             runing_id = id_seg
                             break
                     select_domain = random.sample(domains[select_label], 1)[0]
+                    idxs = idx_domain_label[select_domain][select_label]
+                    seg_selected_idxs = random.sample(idxs, self.n_img_per_segment)  # 选择了一段的样本，8个
+                    selected_idxs.extend(seg_selected_idxs)
                 else:
-                    select_label = idx_label_dict[final_idxs[id_seg - self.n_ins // 2]][0]
-                    choose_domain = self.idx_domain[final_idxs[id_seg - self.n_ins // 2]][0]  #前半段与之对应的部分的领域  前段已选中的领域
-                    new_domains = domains[select_label]
+                    old_idx = -self.n_ins // 2 * self.n_img_per_segment + 1
+                    select_label = idx_label_dict[selected_idxs[old_idx]][0]
+                    choose_domain = idx_domain[selected_idxs[old_idx]][0]  #前半段与之对应的部分的领域  前段已选中的领域
+                    new_domains = copy.deepcopy(domains[select_label])
                     if choose_domain in new_domains:
                         new_domains.remove(choose_domain)
-                    if not len(new_domains):
-                        stop_sampling = True
-                        runing_id = id_seg
-                        break
-                    select_domain = random.sample(new_domains, 1)[0]
+
+                    if not len(new_domains):  #剩余数据不足以构成了，利用之前已经分配的数据
+                        new_domains = copy.deepcopy(self.domains)
+                        new_domains.remove(choose_domain)
+                        select_domain = random.sample(new_domains, 1)[0]  #选择新领域
+                        idxs = []
+                        for idx in repeat_use[select_domain][select_label]:
+                            if idx < batch_order*self.batch_size:
+                                idxs.extend(final_idxs[idx : idx+self.n_img_per_segment])
+                        # for i in range(3):
+                        #     for j in range(7):
+                        #         print(repeat_use[i][j],'   ', end="")
+                        #     print()
+
+                        #print(select_domain,' ',select_label,' ',idxs, ' ',batch_order*self.batch_size)
+
+                        seg_selected_idxs = random.sample(idxs, self.n_img_per_segment)
+                        selected_idxs.extend(seg_selected_idxs)
+                        if select_label in labels:
+                            labels.remove(select_label)  #说明有两个域已经没有足够的数据了
+                        count_repeat += self.n_img_per_segment
+                    else:
+                        select_domain = random.sample(new_domains, 1)[0]
+                        idxs = idx_domain_label[select_domain][select_label]
+                        seg_selected_idxs = random.sample(idxs, self.n_img_per_segment)  # 选择了一段的样本，8个
+                        selected_idxs.extend(seg_selected_idxs)
+
+                fin_idx = batch_order * self.batch_size + id_seg * self.n_img_per_segment  #final_idxs的每小段起始下标
+                repeat_use[select_domain][select_label].append(fin_idx)
 
 
-                idxs = idx_domain_label[select_domain][select_label]
-                seg_selected_idxs = random.sample(idxs, self.n_img_per_segment)  # 选择了一段的样本，8个
-                selected_idxs.extend(seg_selected_idxs)
+
                 for i in seg_selected_idxs:
-                    idx_domain_label[select_domain][select_label].remove(i)
-                final_idxs.extend(selected_idxs)
+                    if i in idx_domain_label[select_domain][select_label]:
+                        idx_domain_label[select_domain][select_label].remove(i)
                 count[select_domain][select_label] -= self.n_img_per_segment
 
-                for la in labels:
+                for la in self.labels:
                     for do in self.domains:
-                        if count[do][la]<self.n_img_per_segment and do in domains[la]:
-                            domains[la].remove(do)
+                        if count[do][la] < self.n_img_per_segment:
+                            if do in domains[la]:
+                                domains[la].remove(do)
+                    # if len(domains[la]) == 1 and la in labels:
+                    #     labels.remove(la)
 
-            if stop_sampling:
-                del final_idxs[-runing_id * self.n_img_per_segment:]  # 删除掉没凑够一次batch的数据
+            batch_order += 1
+            if not stop_sampling:
+                final_idxs.extend(selected_idxs)
 
-
-
+            # if runing_id>0:
+            #     del final_idxs[-(runing_id*self.n_img_per_segment):-1]
+        ''' 验证
+        for i in range(39):
+            for j in range(64):
+                k=i*128+j
+                idx=final_idxs[k]
+                idx1=final_idxs[k+64]
+                if idx_label_dict[idx]!= idx_label_dict[idx1] or idx_domain[idx] == idx_domain[idx1]:
+                    print('wrong')
+        '''
+        print()
         return iter(final_idxs)
 
     def __len__(self):
