@@ -106,7 +106,7 @@ class MixStyle(nn.Module):
         '''
             下面是用于挑选另一个实例的，是对一个batch进行挑选
             这个crossdomain，就是一半一半的翻转，在读入数据的时候，就是一半一半不同的领域  trainer 608
-            定义了dataloader中的采样策略sampler,将一个batch的前后两半数据来自不同的域
+            定义了dataloader中的采样策略sampler,将一个batch的前后两半数据来自不同的域，修改了group_label的方法，每8个作为一小段，来自同一源域相同标签
         '''
 
         if self.mix == "random":
@@ -115,11 +115,23 @@ class MixStyle(nn.Module):
 
         elif self.mix == "crossdomain":
             # split into two halves and swap the order
-            perm = torch.arange(0, B, 1)  # inverse index
+            # perm = torch.arange(0, B, 1)  # inverse index
+            # perm_a, perm_b = perm.chunk(2)
+            # # perm_b = perm_b[torch.randperm(perm_b.shape[0])]
+            # # perm_a = perm_a[torch.randperm(perm_a.shape[0])]
+            # perm = torch.cat([perm_b, perm_a], 0)
+
+            k=0
+            perm = torch.tensor([])
+
+            for i in range(16):
+                seg_perm = torch.arange(k, k+8)
+                k += 8
+                seg_perm = seg_perm[torch.randperm(seg_perm.shape[0])]
+                perm = torch.cat([perm, seg_perm], 0)
             perm_a, perm_b = perm.chunk(2)
-            # perm_b = perm_b[torch.randperm(perm_b.shape[0])]
-            # perm_a = perm_a[torch.randperm(perm_a.shape[0])]
             perm = torch.cat([perm_b, perm_a], 0)
+
 
         else:
             raise NotImplementedError
