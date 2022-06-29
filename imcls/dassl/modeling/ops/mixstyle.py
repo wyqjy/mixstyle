@@ -131,7 +131,7 @@ class MixStyle(nn.Module):
                 perm = torch.cat([perm, seg_perm], 0)
             perm_a, perm_b = perm.chunk(2)
             perm = torch.cat([perm_b, perm_a], 0)
-
+            perm = perm.long()
 
         else:
             raise NotImplementedError
