@@ -4,7 +4,8 @@ DATALOADER:
     BATCH_SIZE: 128
     N_DOMAIN: 2
   TEST:
-    BATCH_SIZE: 500
+    SAMPLER: 'Test_by_label'
+    BATCH_SIZE: 128
   NUM_WORKERS: 4
 
 OPTIM:

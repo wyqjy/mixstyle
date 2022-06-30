@@ -166,6 +166,9 @@ class RandomClassSampler(Sampler):        #按照类别划分    分成了n_ins 
 
         while len(avai_labels) >= self.ncls_per_batch:
             selected_labels = random.sample(avai_labels, self.ncls_per_batch)
+            '''
+            每一小段的标签是一样的，一个batch里的每段之间标签不一样
+            '''
             for label in selected_labels:
                 batch_idxs = batch_idxs_dict[label].pop(0)
                 final_idxs.extend(batch_idxs)
@@ -352,6 +355,53 @@ class Group_by_label(Sampler):        #修改的"RandomDomainSampler"    按照�
     def __len__(self):
         return self.length
 
+class Test_by_label(Sampler):
+    '''
+    将测试集也按8个同样的标签一组划分
+    '''
+    def __init__(self, data_source, batch_size, n_ins=16):
+        self.data_source = data_source
+        self.n_ins = n_ins
+
+        self.label_dict = defaultdict(list)
+        for i, item in enumerate(data_source):
+            self.label_dict[item.label].append(i)
+        self.labels = list(self.label_dict.keys())
+
+        self.n_img_per_seg = batch_size // n_ins
+        self.batch_size = batch_size
+        self.length = len(list(self.__iter__()))
+
+    def __iter__(self):
+        label_dict = copy.deepcopy(self.label_dict)
+        labels = copy.deepcopy(self.labels)
+        final_idxs = []
+        stop_sampling = False
+
+        while not stop_sampling:
+            for id in range(self.n_ins):
+                selected_label = random.sample(labels, 1)[0]
+                idxs = label_dict[selected_label]
+                selected_idxs = random.sample(idxs, self.n_img_per_seg)
+                final_idxs.extend(selected_idxs)
+
+                for idx in selected_idxs:
+                    label_dict[selected_label].remove(idx)
+                remaining = len(label_dict[selected_label])
+                if remaining < self.n_img_per_seg:   #剩余的数据不够一次batch，抛弃
+                    labels.remove(selected_label)
+
+            remain_sum = 0
+            for label in labels:
+                remain_sum += len(label_dict[label])
+            if remain_sum < self.batch_size:
+                stop_sampling = True
+
+
+        return iter(final_idxs)
+
+    def __len__(self):
+        return self.length
 
 
 def build_sampler(
@@ -379,6 +429,8 @@ def build_sampler(
 
     elif sampler_type == "Group_by_label":
         return Group_by_label(data_source, batch_size, n_ins)
+    elif sampler_type == 'Test_by_label':
+        return Test_by_label(data_source, batch_size, n_ins)
 
     else:
         raise ValueError("Unknown sampler type: {}".format(sampler_type))
