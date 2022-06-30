@@ -119,7 +119,7 @@ class DataManager:
         if dataset.val:
             val_loader = build_data_loader(
                 cfg,
-                sampler_type=cfg.DATALOADER.TEST.SAMPLER,
+                sampler_type=cfg.DATALOADER.TRAIN_X.SAMPLER,
                 data_source=dataset.val,
                 batch_size=cfg.DATALOADER.TEST.BATCH_SIZE,
                 tfm=tfm_test,
