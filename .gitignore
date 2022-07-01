@@ -136,3 +136,5 @@ dmypy.json
 
 # This project
 output/
+.idea
+test.py
