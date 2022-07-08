@@ -126,7 +126,7 @@ _C.DATALOADER.TEST.BATCH_SIZE = 32
 ###########################
 _C.MODEL = CN()
 # Path to model weights (for initialization)
-_C.MODEL.INIT_WEIGHTS = "resnet18"
+_C.MODEL.INIT_WEIGHTS = ""
 _C.MODEL.BACKBONE = CN()
 _C.MODEL.BACKBONE.NAME = ""
 _C.MODEL.BACKBONE.PRETRAINED = True

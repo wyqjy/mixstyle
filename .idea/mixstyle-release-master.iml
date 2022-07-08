@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Dassl.pytorch/dassl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Dassl/dassl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/imcls/dassl" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6 (py36)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

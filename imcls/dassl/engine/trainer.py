@@ -377,10 +377,10 @@ class SimpleTrainer(TrainerBase):
         print('-' * 50)
 
         if cfg.MODEL.INIT_WEIGHTS:
-            print('使用了', cfg.MODEL.INIT_WEIGHTS, '预训练权重')
-            # load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
-            model_urls = {'resnet18': 'https://download.pytorch.org/models/resnet18-f37072fd.pth',}
-            self.model.load_state_dict(model_zoo.load_url(model_urls['resnet18']), strict=False)
+            # print('使用了', cfg.MODEL.INIT_WEIGHTS, '预训练权重')
+            load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
+            # model_urls = {'resnet18': 'https://download.pytorch.org/models/resnet18-f37072fd.pth',}
+            # self.model.load_state_dict(model_zoo.load_url(model_urls['resnet18']), strict=False)
         self.model.to(self.device)
 
 

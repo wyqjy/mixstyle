@@ -81,7 +81,7 @@ def setup_cfg(args):
         cfg.merge_from_file(args.dataset_config_file)
     if args.config_file:
         cfg.merge_from_file(args.config_file)
-    args.opts= ['MODEL.BACKBONE.NAME','resnet18_ms_l123']  #成功加入了
+    args.opts= ['MODEL.BACKBONE.NAME','resnet18_ms_l12']  #成功加入了
     cfg.merge_from_list(args.opts)     #opts
     cfg.freeze()
     return cfg
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=str, default='../../Data', help='path to dataset')  #修改default,放数据的
     parser.add_argument(
-        '--output-dir', type=str, default='output/pacs/Vanilla2/resnet18_ms_l123/crossdomain/sketch/seed1', help='output directory'   #添加default
+        '--output-dir', type=str, default='output/office_home/Vanilla2/resnet18_ms_l12/random/seed1', help='output directory'   #添加default
     )
     parser.add_argument(
         '--resume',
@@ -139,26 +139,26 @@ if __name__ == '__main__':
         '--source-domains',
         type=str,
         nargs='+',
-        default=['art_painting', 'cartoon', 'photo'],   #增加
+        default=['art', 'clipart', 'product'],   #增加
         help='source domains for DA/DG'
     )
     parser.add_argument(
         '--target-domains',
         type=str,
         nargs='+',
-        default=['sketch'],         #增加
+        default=['real_world'],         #增加
         help='target domains for DA/DG'
     )
     parser.add_argument(
         '--transforms', type=str, nargs='+', help='data augmentation methods'
     )
     parser.add_argument(
-        '--config-file', type=str, default='configs/trainers/mixstyle/pacs_crossdomain.yaml', help='path to config file'   #设置了default
+        '--config-file', type=str, default='configs/trainers/mixstyle/office_home_dg_random.yaml', help='path to config file'   #设置了default
     )
     parser.add_argument(
         '--dataset-config-file',
         type=str,
-        default='..\Dassl\configs\datasets\dg\pacs.yaml',   #添加
+        default='..\Dassl\configs\datasets\dg\office_home_dg.yaml',   #添加
         help='path to config file for dataset setup'
     )
     parser.add_argument(
